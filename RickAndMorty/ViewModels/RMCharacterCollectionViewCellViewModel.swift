@@ -7,12 +7,13 @@
 
 import Foundation
 
-struct RMCharacterCollectionViewCellViewModel {
+struct RMCharacterCollectionViewCellViewModel: Hashable, Equatable {
     
     public let characterName: String
     private let characterStatus: RMCharacterStatus
     private let characterImageUrl: URL?
-
+    
+    
     // MARK: - Init
     
     init( characterName: String,
@@ -26,10 +27,10 @@ struct RMCharacterCollectionViewCellViewModel {
     }
 
     public var characterStatusText: String {
-        return characterStatus.rawValue
+        return "Status: \(characterStatus.text)"
     }
     
-    public func fetchImage ( completion: @escaping (Result<Data, Error>) -> Void) {
+    public func fetchImage(completion: @escaping (Result<Data, Error>) -> Void) {
         guard let url = characterImageUrl else {
             completion(.failure(URLError(.badURL)))
             return
@@ -45,5 +46,18 @@ struct RMCharacterCollectionViewCellViewModel {
             completion(.success(data))
         }
         task.resume()
+    }
+    
+    // MARK: - Hashable
+    
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(characterName)
+        hasher.combine(characterStatus)
+        hasher.combine(characterImageUrl)
+    }
+    
+    static func == (lhs: RMCharacterCollectionViewCellViewModel, rhs: RMCharacterCollectionViewCellViewModel) ->
+    Bool {
+        return lhs.hashValue == rhs.hashValue
     }
 }

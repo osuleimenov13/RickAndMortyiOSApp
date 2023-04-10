@@ -40,4 +40,5 @@ final class RMCharactersViewController: UIViewController, RMCharacterListViewDel
         detailVC.navigationItem.largeTitleDisplayMode = .never
         navigationController?.pushViewController(detailVC, animated:true)
     }
+    
 }

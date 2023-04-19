@@ -15,7 +15,7 @@ final class RMRequest {
     }
     
     /// Desired endpoint
-    private let endpoint: RMEndpoint
+    public let endpoint: RMEndpoint // making public for NSCache business in our RMService
     
     /// Path components for API, if any
     private let pathComponents: [String]
@@ -123,4 +123,6 @@ final class RMRequest {
 
 extension RMRequest {
     static let listCharactersRequest = RMRequest(endpoint: .character)
+    static let listEpisodesRequest = RMRequest(endpoint: .episode)
+    static let listLocationsRequest = RMRequest(endpoint: .location)
 }

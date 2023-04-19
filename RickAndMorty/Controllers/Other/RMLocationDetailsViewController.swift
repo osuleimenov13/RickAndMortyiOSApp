@@ -1,24 +1,24 @@
 //
-//  RMEpisodeDetailsViewController.swift
+//  RMLocationDetailsViewController.swift
 //  RickAndMorty
 //
-//  Created by Olzhas Suleimenov on 10.04.2023.
+//  Created by Olzhas Suleimenov on 18.04.2023.
 //
 
 import UIKit
 
-/// VC to show details about single episode
-final class RMEpisodeDetailsViewController: UIViewController, RMEpisodeDetailsViewViewModelDelegate, RMEpisodeDetailsViewDelegate {
+/// VC to show details about single location
+final class RMLocationDetailsViewController: UIViewController, RMLocationDetailsViewViewModelDelegate, RMLocationDetailsViewDelegate {
     
-
-    private let viewModel: RMEpisodeDetailsViewViewModel
+    private let viewModel: RMLocationDetailsViewViewModel
     
-    private let detailsView = RMEpisodeDetailsView()
+    private let detailsView = RMLocationDetailsView()
     
     // MARK: - Init
     
-    init(url: URL?) {
-        self.viewModel = RMEpisodeDetailsViewViewModel(endpointUrl: url)
+    init(location: RMLocation) {
+        let url = URL(string: location.url)
+        self.viewModel = RMLocationDetailsViewViewModel(endpointUrl: url)
         super.init(nibName: nil, bundle: nil)
     }
     
@@ -30,15 +30,15 @@ final class RMEpisodeDetailsViewController: UIViewController, RMEpisodeDetailsVi
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Episode"
+        title = "Location"
         view.addSubview(detailsView)
         setUpConstraints()
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .action, target: self, action: #selector(didTapShare))
         
         viewModel.delegate = self // who gets notified as delegate once smth interesting happens and we make real implementation of delegate here as we rised hand and said I'm the delegate - ok but to be so you have to implement some functionality
-        viewModel.fetchEpisodeData() // initailly we called this func from viewModel's init() but to avoid edge case when fetching happens faster than assigning viewModel's delegate (which is this VC)
-        detailsView.delegate = self // delegate to open CharacterView from EpisodeDetailsView
+        viewModel.fetchLocationData() // initailly we called this func from viewModel's init() but to avoid edge case when fetching happens faster than assigning viewModel's delegate (which is this VC)
+        detailsView.delegate = self // delegate to open CharacterView from LocationDetailsView
     }
     
     @objc private func didTapShare() {
@@ -56,13 +56,13 @@ final class RMEpisodeDetailsViewController: UIViewController, RMEpisodeDetailsVi
     
     // MARK: - ViewModel Delegate
         
-    func didFetchEpisodeDetails() {
+    func didFetchLocationDetails() {
         detailsView.configure(with: viewModel) // once we get notified from ViewModel via delegate protocol that fetching of episodes done we set up our View UI
     }
     
     // MARK: - View Delegate
     
-    func rmEpisodeDetailsView(_ episodeDetailsView: RMEpisodeDetailsView, didSelectCharacter character: RMCharacter) {
+    func rmLocationDetailsView(_ locationDetailsView: RMLocationDetailsView, didSelectCharacter character: RMCharacter) {
         let vc = RMCharacterDetailsViewController(viewModel: .init(character: character))
         vc.title = character.name
         vc.navigationItem.largeTitleDisplayMode = .never

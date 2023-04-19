@@ -98,8 +98,7 @@ class RMCharacterCollectionViewCell: UICollectionViewCell {
             switch result {
             case .success(let data):
                 DispatchQueue.main.async {
-                    let image = UIImage(data: data)
-                    self?.imageView.image = image
+                    self?.imageView.image = UIImage(data: data)
                 }
             case .failure (let error):
                 print(String(describing: error))

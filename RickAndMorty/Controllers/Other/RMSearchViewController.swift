@@ -65,6 +65,13 @@ final class RMSearchViewController: UIViewController {
                                                             style: .done,
                                                             target: self,
                                                             action: #selector(didTapExecuteSearch))
+        
+        searchView.delegate = self
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        searchView.presentKeyboard()
     }
     
     @objc private func didTapExecuteSearch() {
@@ -80,5 +87,21 @@ final class RMSearchViewController: UIViewController {
         ])
     }
     
+    
+}
+
+// MARK: - RMSearchViewDelegate
+
+extension RMSearchViewController: RMSearchViewDelegate {
+    
+    func rmSearchView(_ searchView: RMSearchView, didSelectOption option: RMSearchInputViewViewModel.DynamicOption) {
+        print("Should present option picker for \(option)")
+        let vc = RMSearchOptionPickerViewController(option: option) { selection in
+            print("Did select \(selection)")
+        }
+        vc.sheetPresentationController?.detents = [.medium()]
+        vc.sheetPresentationController?.prefersGrabberVisible = true
+        present(vc, animated: true)
+    }
     
 }

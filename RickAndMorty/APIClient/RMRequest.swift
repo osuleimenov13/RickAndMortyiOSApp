@@ -71,7 +71,7 @@ final class RMRequest {
     // parsing url and taking out endpoint and query parameters if any and pass them to init
     /// Attempt to create request
     /// - Parameter url: URL to parse
-    convenience init? (url: URL) {
+    convenience init?(url: URL) {
         let string = url.absoluteString
         if !string.contains(Constants.baseUrl) {
             return nil

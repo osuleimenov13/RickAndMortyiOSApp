@@ -13,7 +13,7 @@ import UIKit
 // Searching / API Call
 
 /// Configurable controller to search
-final class RMSearchViewController: UIViewController {
+final class RMSearchViewController: UIViewController { // apears once 🔍 button clicked
     
     /// Configuration for search session
     struct Config {
@@ -21,6 +21,14 @@ final class RMSearchViewController: UIViewController {
             case character // name, status, gender
             case episode // name
             case location // name, type
+            
+            var endpoint: RMEndpoint {
+                switch self {
+                case .character: return .character
+                case .episode: return .episode
+                case .location: return .location
+                }
+            }
             
             var title: String {
                 switch self {
@@ -37,7 +45,7 @@ final class RMSearchViewController: UIViewController {
         let type: `Type`
     }
         
-    private let searchView: RMSearchView
+    private let searchView: RMSearchView // adding this view to main VC view
     private let viewModel: RMSearchViewViewModel
     
     // MARK: - Init
@@ -75,7 +83,7 @@ final class RMSearchViewController: UIViewController {
     }
     
     @objc private func didTapExecuteSearch() {
-       // viewModel.executeSearch()
+       viewModel.executeSearch()
     }
     
     private func addConstraints() {
@@ -94,14 +102,22 @@ final class RMSearchViewController: UIViewController {
 
 extension RMSearchViewController: RMSearchViewDelegate {
     
-    func rmSearchView(_ searchView: RMSearchView, didSelectOption option: RMSearchInputViewViewModel.DynamicOption) {
-        print("Should present option picker for \(option)")
-        let vc = RMSearchOptionPickerViewController(option: option) { selection in
-            print("Did select \(selection)")
+    func rmSearchView(_ searchView: RMSearchView, didSelectOption option: RMSearchInputViewViewModel.DynamicOption) { // when select status, gender or location type buttons in SearchInputView
+        let vc = RMSearchOptionPickerViewController(option: option) { [weak self] selection in // closure gets executed whenever we click on available options in Option Picker selection (dead, alive, male, female etc.)
+            DispatchQueue.main.async {
+                self?.viewModel.set(value: selection, for: option) // setting new value(string) in our viewModel's optionMap dictionary
+            }
         }
+        
+        // present option picker for option
         vc.sheetPresentationController?.detents = [.medium()]
         vc.sheetPresentationController?.prefersGrabberVisible = true
         present(vc, animated: true)
     }
     
+    func rmSearchView(_ searchView: RMSearchView, didSelectLocation location: RMLocation) {
+        let vc = RMLocationDetailsViewController(location: location)
+        vc.navigationItem.largeTitleDisplayMode = .never
+        navigationController?.pushViewController(vc, animated: true)
+    }
 }

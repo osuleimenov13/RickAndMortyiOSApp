@@ -9,8 +9,12 @@ import UIKit
 
 protocol RMSearchInputViewDelegate: AnyObject {
     func rmSearchInputView(_ searchInputView: RMSearchInputView, didSelectOption option: RMSearchInputViewViewModel.DynamicOption)
+    func rmSearchInputView(_ searchInputView: RMSearchInputView,
+    didChangeSearchText text: String)
+    func rmSearchInputViewDidTapSearchKeyboardButton(_ searchInputView: RMSearchInputView)
 }
 
+/// View for top part of search screen with search bar and filter options
 final class RMSearchInputView: UIView {
     
     public weak var delegate: RMSearchInputViewDelegate?
@@ -25,6 +29,8 @@ final class RMSearchInputView: UIView {
             createOptionSelectionViews(options: options)
         }
     }
+    
+    private var stackView: UIStackView?
 
     private let searchBar: UISearchBar = {
         let searchBar = UISearchBar()
@@ -40,6 +46,8 @@ final class RMSearchInputView: UIView {
         translatesAutoresizingMaskIntoConstraints = false
         addSubviews(searchBar)
         addConstraints()
+        
+        searchBar.delegate = self
     }
     
     required init?(coder: NSCoder) {
@@ -88,6 +96,7 @@ final class RMSearchInputView: UIView {
     
     private func createOptionStackView() -> UIStackView {
         let stackView = UIStackView()
+        self.stackView = stackView
         stackView.translatesAutoresizingMaskIntoConstraints = false
         stackView.axis = .horizontal
         stackView.spacing = 6
@@ -126,5 +135,40 @@ final class RMSearchInputView: UIView {
         searchBar.becomeFirstResponder()
     }
     
+    public func update(option: RMSearchInputViewViewModel.DynamicOption, value: String) {
+        // Update options
+        guard let buttons = stackView?.arrangedSubviews as? [UIButton],
+              let allOptions = viewModel?.options,
+              let index = allOptions.firstIndex(of: option) else { return }
+        
+        
+        let button: UIButton = buttons[index]
+        button.setAttributedTitle(
+            NSAttributedString(string: value.uppercased(),
+                               attributes: [
+                                .font : UIFont.systemFont(ofSize: 18, weight: .medium),
+                                .foregroundColor: UIColor.link
+                               ]),
+            for: .normal)
+    }
     
+    
+}
+
+
+// MARK: - UISearchBarDelegate
+
+extension RMSearchInputView: UISearchBarDelegate {
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        // Notify delegate of search text change
+        print(searchText)
+        delegate?.rmSearchInputView(self, didChangeSearchText: searchText)
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        // / Notify delegate that search button was tapped
+        searchBar.resignFirstResponder()
+        delegate?.rmSearchInputViewDidTapSearchKeyboardButton(self)
+    }
 }

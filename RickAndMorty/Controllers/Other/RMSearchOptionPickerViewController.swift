@@ -24,7 +24,7 @@ class RMSearchOptionPickerViewController: UIViewController {
     init(option: RMSearchInputViewViewModel.DynamicOption, selection: @escaping (String) -> Void) {
         self.option = option
         self.selectionBlock = selection
-        super.init (nibName: nil, bundle: nil) // since we overriding superclass init and implementing our own constructor here
+        super.init(nibName: nil, bundle: nil) // since we overriding superclass init and implementing our own constructor here
         
     }
     
@@ -71,7 +71,7 @@ extension RMSearchOptionPickerViewController: UITableViewDelegate, UITableViewDa
         tableView.deselectRow(at: indexPath, animated: true)
         // Inform caller of choice
         let choice = option.choices[indexPath.row]
-        self.selectionBlock(choice)
-        dismiss(animated: true)
+        selectionBlock(choice)
+        dismiss(animated: true) // dismiss this VC
     }
 }

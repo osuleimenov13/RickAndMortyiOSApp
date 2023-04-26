@@ -31,7 +31,28 @@ final class RMSearchResultsView: UIView {
         return table
     }()
     
+    private let collectionView: UICollectionView = {
+        let layout = UICollectionViewFlowLayout()
+        layout.scrollDirection = .vertical
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 10, bottom: 10, right: 10)
+        let collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        collectionView.isHidden = true
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.register(
+            RMCharacterCollectionViewCell.self,
+            forCellWithReuseIdentifier: RMCharacterCollectionViewCell.identifier)
+        collectionView.register(RMCharacterEpisodeCollectionViewCell.self, forCellWithReuseIdentifier: RMCharacterEpisodeCollectionViewCell.identifier)
+        collectionView.register(
+            RMFooterLoadingCollectionReusableView.self,
+            forSupplementaryViewOfKind: UICollectionView.elementKindSectionFooter,
+            withReuseIdentifier: RMFooterLoadingCollectionReusableView.identifier)
+        
+        return collectionView
+    }()
+    
+    
     private var locationCellViewModels: [RMLocationTableViewCellViewModel] = []
+    private var collectionViewCellViewModels: [any Hashable] = []
 
     // MARK: - Init
     
@@ -40,7 +61,7 @@ final class RMSearchResultsView: UIView {
         isHidden = true
         backgroundColor = .red
         translatesAutoresizingMaskIntoConstraints = false
-        addSubviews(tableView)
+        addSubviews(tableView, collectionView)
         addConstraints() // need to add as subview first then set constraints otherwise app crashs
     }
     
@@ -54,6 +75,11 @@ final class RMSearchResultsView: UIView {
         tableView.leftAnchor.constraint(equalTo: leftAnchor),
         tableView.rightAnchor.constraint(equalTo: rightAnchor),
         tableView.bottomAnchor.constraint(equalTo: bottomAnchor),
+        
+        collectionView.topAnchor.constraint(equalTo: topAnchor),
+        collectionView.leftAnchor.constraint(equalTo: leftAnchor),
+        collectionView.rightAnchor.constraint(equalTo: rightAnchor),
+        collectionView.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
     }
     
@@ -64,8 +90,10 @@ final class RMSearchResultsView: UIView {
         
         switch viewModel {
         case .characters(let viewModels):
+            self.collectionViewCellViewModels = viewModels
             setUpCollectionView()
         case .episodes(let viewModels):
+            self.collectionViewCellViewModels = viewModels
             setUpCollectionView()
         case .locations(let viewModels):
             setUpTableView(viewModels: viewModels)
@@ -73,13 +101,18 @@ final class RMSearchResultsView: UIView {
     }
     
     private func setUpCollectionView() {
-        
+        self.tableView.isHidden = true
+        self.collectionView.isHidden = false
+        collectionView.delegate = self
+        collectionView.dataSource = self
+        collectionView.reloadData()
     }
     
     private func setUpTableView(viewModels: [RMLocationTableViewCellViewModel]) {
         tableView.delegate = self
         tableView.dataSource = self
         tableView.isHidden = false
+        collectionView.isHidden = true
         self.locationCellViewModels = viewModels
         tableView.reloadData()
     }
@@ -111,5 +144,62 @@ extension RMSearchResultsView: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         delegate?.rmSearchResultsView(self, didTapLocationAt: indexPath.row)
+    }
+}
+
+
+// MARK: - CollectionView
+
+extension RMSearchResultsView: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+    
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return collectionViewCellViewModels.count
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        let cellViewModel = collectionViewCellViewModels[indexPath.row] // cause if we call this func means we have something in the array
+        
+        // Character cell
+        if cellViewModel is RMCharacterCollectionViewCellViewModel {
+            guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RMCharacterCollectionViewCell.identifier, for: indexPath) as? RMCharacterCollectionViewCell else { fatalError() }
+            cell.configure(with: cellViewModel as! RMCharacterCollectionViewCellViewModel)
+            return cell
+        }
+        
+        // Episode cell
+        guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: RMCharacterEpisodeCollectionViewCell.identifier, for: indexPath) as? RMCharacterEpisodeCollectionViewCell else { fatalError() }
+        
+        if let episodeVM = cellViewModel as? RMCharacterEpisodeCollectionViewCellViewModel {
+            cell.configure(with: episodeVM)
+        }
+        return cell
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        collectionView.deselectItem(at: indexPath, animated: true)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        
+        let cellViewModel = collectionViewCellViewModels[indexPath.row]
+        let bounds = UIScreen.main.bounds
+        
+        if cellViewModel is RMCharacterCollectionViewCellViewModel {
+            // Character size
+            let width = (bounds.width-30)/2
+            
+            return CGSize(
+                width: width,
+                height: width * 1.5
+            )
+        }
+        
+        // Episode size
+        let width = bounds.width-20
+        
+        return CGSize(
+            width: width,
+            height: 100
+        )
     }
 }

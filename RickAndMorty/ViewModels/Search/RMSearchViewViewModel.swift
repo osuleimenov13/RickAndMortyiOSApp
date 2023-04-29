@@ -47,8 +47,10 @@ final class RMSearchViewViewModel {
         // Send API Call
         // Notify view of results, no results, or error
         
-        print("Search text: \(searchText)")
-        
+        guard !searchText.trimmingCharacters(in: .whitespaces).isEmpty else {
+            return
+        }
+                
         // Build query parameters
         var queryParams = [URLQueryItem(name: "name", value: searchText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed))]
         
@@ -88,33 +90,42 @@ final class RMSearchViewViewModel {
     }
     
     private func processSearchResults(model: Codable) {
-        var resultsVM: RMSearchResultsViewModel?
+        var searchResultsOfType: RMSearchResultsType?
+        var nextUrl: String?
+        
         if let characterResults = model as? RMGetAllCharactersResponse {
-            resultsVM = .characters(characterResults.results.compactMap({
+            searchResultsOfType = .characters(characterResults.results.compactMap({
                 return RMCharacterCollectionViewCellViewModel(
                     characterName: $0.name,
                     characterStatus: $0.status,
                     characterImageUrl: URL(string: $0.image))
             }))
+            
+            nextUrl = characterResults.info.next
         }
         else if let episodeResults = model as? RMGetAllEpisodesResponse {
-            resultsVM = .episodes(episodeResults.results.compactMap({
+            searchResultsOfType = .episodes(episodeResults.results.compactMap({
                 return RMCharacterEpisodeCollectionViewCellViewModel(episodeDataUrl: URL(string: $0.url))
             }))
+            
+            nextUrl = episodeResults.info.next
         }
         else if let locationResults = model as? RMGetAllLocationsResponse {
-            resultsVM = .locations(locationResults.results.compactMap({
+            searchResultsOfType = .locations(locationResults.results.compactMap({
                 return RMLocationTableViewCellViewModel(location: $0)
             }))
+            
+            nextUrl = locationResults.info.next
         }
         else {
             // Error: No results view
         }
         
         
-        if let results = resultsVM {
-            self.searchResultHandler?(results)
+        if let results = searchResultsOfType {
             self.searchResultModel = model
+            let vm = RMSearchResultsViewModel(results: results, next: nextUrl)
+            self.searchResultHandler?(vm)
         } else {
             // fallback error
             handleNoResults()

@@ -48,7 +48,7 @@ final class RMLocationsViewController: UIViewController, RMLocationViewViewModel
     }
     
     
-    // MARK: - LocationViewModel Delegate
+    // MARK: - LocationViewViewModel Delegate
     
     func didFetchInitialLocations() {
         locationView.configure(with: viewModel)

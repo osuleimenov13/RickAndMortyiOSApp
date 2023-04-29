@@ -23,6 +23,15 @@ final class RMLocationView: UIView {
             UIView.animate(withDuration: 0.3) {
                 self.tableView.alpha = 1
             }
+            
+            // puttin here instead to init() to be sure viewModel gets created cause its nullable
+            viewModel?.registerDidFinishPaginationBlock { [weak self] in
+                DispatchQueue.main.async { // @escaping closure callback on background queue
+                    // Loading indicator go bye bye
+                    self?.tableView.tableFooterView = nil
+                    self?.tableView.reloadData() // able to call this while maintaining the offset but going to promp table view to reload all data. Table view is efficient to comute only visible cells and reload those but you can also do batch updates tableView.insertRows (at: [IndexPath], with: UITableView.RowAnimation). reloadData() is more simplier though (done batch updating in collection views)
+                }
+            }
         }
     }
     private let tableView: UITableView = {
@@ -114,5 +123,35 @@ extension RMLocationView: UITableViewDataSource {
         }
         cell.configure(with: cellViewModels[indexPath.row])
         return cell
+    }
+}
+
+
+extension RMLocationView: UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard let viewModel = viewModel, !viewModel.cellViewModels.isEmpty, viewModel.shouldShowLoadMoreIndicator, !viewModel.isLoadingMoreLocations else {
+                return
+            }
+         
+        // using timer to debounce the process of going down infinetly, not to accidentally kick off multiple pagination requests
+        Timer.scheduledTimer(withTimeInterval: 0.2, repeats: false) { [weak self] t in
+            let offset = scrollView.contentOffset.y
+            let totalContentHeight = scrollView.contentSize.height
+            let totalScroliViewFixedHeight = scrollView.frame.size.height
+            
+            if offset >= totalContentHeight - totalScroliViewFixedHeight - 120 {
+                DispatchQueue.main.async {
+                    self?.showLoadingIndicator()
+                }
+                self?.viewModel?.fetchAdditionalLocations()
+            }
+            
+            t.invalidate()
+        }
+    }
+    
+    private func showLoadingIndicator() {
+        let footer = RMTableLoadingFooterView(frame: CGRect(x: 0, y: 0, width: frame.size.width, height: 100))
+        tableView.tableFooterView = footer
     }
 }

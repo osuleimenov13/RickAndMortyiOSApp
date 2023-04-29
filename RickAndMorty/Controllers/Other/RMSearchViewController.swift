@@ -108,7 +108,7 @@ extension RMSearchViewController: RMSearchViewDelegate {
                 self?.viewModel.set(value: selection, for: option) // setting new value(string) in our viewModel's optionMap dictionary
             }
         }
-        
+          
         // present option picker for option
         vc.sheetPresentationController?.detents = [.medium()]
         vc.sheetPresentationController?.prefersGrabberVisible = true

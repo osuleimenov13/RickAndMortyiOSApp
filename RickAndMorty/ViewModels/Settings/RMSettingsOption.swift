@@ -46,7 +46,7 @@ enum RMSettingsOption: CaseIterable { // to loop over all cases
         case .privacy:
             return "Privacy Policy"
         case .apiReference:
-            return "API Referenece"
+            return "API Reference"
         case .viewSeries:
             return "View Video Series"
         case .viewCode:

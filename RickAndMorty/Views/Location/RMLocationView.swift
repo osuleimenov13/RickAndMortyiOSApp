@@ -92,6 +92,8 @@ final class RMLocationView: UIView {
     }
 }
 
+// MARK: - UITableViewDelegate
+
 extension RMLocationView: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
@@ -102,6 +104,8 @@ extension RMLocationView: UITableViewDelegate {
     }
     
 }
+
+// MARK: - UITableViewDataSource
 
 extension RMLocationView: UITableViewDataSource {
     
@@ -126,6 +130,7 @@ extension RMLocationView: UITableViewDataSource {
     }
 }
 
+// MARK: - UIScrolIViewDelegate
 
 extension RMLocationView: UIScrollViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
@@ -140,9 +145,7 @@ extension RMLocationView: UIScrollViewDelegate {
             let totalScroliViewFixedHeight = scrollView.frame.size.height
             
             if offset >= totalContentHeight - totalScroliViewFixedHeight - 120 {
-                DispatchQueue.main.async {
-                    self?.showLoadingIndicator()
-                }
+                self?.showLoadingIndicator()
                 self?.viewModel?.fetchAdditionalLocations()
             }
             
@@ -153,5 +156,6 @@ extension RMLocationView: UIScrollViewDelegate {
     private func showLoadingIndicator() {
         let footer = RMTableLoadingFooterView(frame: CGRect(x: 0, y: 0, width: frame.size.width, height: 100))
         tableView.tableFooterView = footer
+        tableView.setContentOffset(CGPoint(x: 0, y: tableView.contentSize.height), animated: true) // to scroll all the way to the bottom when footer(spinner) appears
     }
 }

@@ -77,7 +77,7 @@ final class RMCharacterDetailsView: UIView {
         case .photo:
             return viewModel.createPhotoSectionLayout()
         case .information:
-            return viewModel.createInfoSectionLayout()
+            return viewModel.createInfoSectionLayout() 
         case .episodes:
             return viewModel.createEpisodesSectionLayout()
         }

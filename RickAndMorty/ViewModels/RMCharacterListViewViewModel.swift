@@ -85,11 +85,13 @@ final class RMCharacterListViewViewModel: NSObject {
                 let newCount = moreResults.count
                 let total = originalCount + newCount
                 let startingIndex = total - newCount
+                // figure out what is net additional indexPaths
                 let indexPathsToAdd: [IndexPath] = Array(startingIndex..<(startingIndex+newCount)).compactMap({
                     return IndexPath(row: $0, section: 0)
                 })
                 strongSelf.characters.append(contentsOf: moreResults)
                 
+                // sending indexPaths to view view delegate
                 DispatchQueue.main.async {
                     strongSelf.delegate?.didLoadMoreCharacters(with: indexPathsToAdd)
                 }
@@ -129,10 +131,9 @@ extension RMCharacterListViewViewModel: UICollectionViewDataSource, UICollection
         // also can leverage trait collections
         // TODO: Abstract to extension not to do conditionals everywhere for diff devices
         
-        let isIphone = UIDevice.current.userInterfaceIdiom == .phone
         let bounds = collectionView.bounds
         let width: CGFloat
-        if isIphone {
+        if UIDevice.isiPhone {
             width = (bounds.width-30)/2
         } else {
             // Mac | iPad
